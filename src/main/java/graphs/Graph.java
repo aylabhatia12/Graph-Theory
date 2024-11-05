@@ -3,7 +3,7 @@
  *
  */ 
 
-package cpsc450;
+package graphs;
 
 import java.util.Set;
 

@@ -1,11 +1,11 @@
 /**
- * CPSC 450, Fall 2024
+ * 
  * 
  * NAME: Ayla Bhatia
- * DATE: Fall 2024
+
  */
 
-package cpsc450;
+package graphs;
 
 import java.util.HashMap;
 import java.util.HashSet;

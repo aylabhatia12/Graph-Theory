@@ -2,7 +2,7 @@
  *
  */
 
-package cpsc450;
+package graphs;
 
 
 public class GraphException extends RuntimeException {
