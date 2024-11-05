@@ -305,6 +305,226 @@ public static List<Integer> topologicalSort(Graph g) {
       }
       return result;
   }  
+
+  /**
+   * Performs a breadth-first traversal of a directed graph starting
+   * at a source vertex.
+   * @param g The graph to search
+   * @param s The source vertex to search from
+   * @param digraph If false, treat g as undirected
+   * @returns A search tree as a map with vertices as keys and
+   * search-tree parents as corresponding values, or null if the
+   * source vertex is invalid. 
+   */
+    public static Map<Integer,Integer> bfs(Graph g, int s, boolean digraph) {
+        // @TODO: implement this function
+            if (g.hasVertex(s) == false) {
+                return null; // source vertex does not exist
+            }
+
+            Map<Integer, Integer> searchTreeMap = new HashMap<>(); // To store search tree vertices
+            boolean[] visitedVertices = new boolean[g.vertices()]; // Boolean array for visited vertices with the size equal to total number of vertices 
+            Queue<Integer> queue = new LinkedList<>(); // Queue for BFS
+
+            visitedVertices[s] = true; // Mark source vertex as visited
+            queue.add(s); // Add the starting vertex to the bfs queue
+            searchTreeMap.put(s, -1); // Add source vertex to the search tree with no parent
+
+            while (queue.isEmpty() == false) { //If the bfs queue is not empty
+                int current = queue.remove(); //remove the first vertex
+                // Go through all outgoing neighbors
+                Set<Integer> neighbors = g.out(current); // get all out edges for the current vertex
+                for (Integer neighbor : neighbors) { // check all out edges
+                    if (visitedVertices[neighbor] == false) { //This neighbor has not been visited
+                        visitedVertices[neighbor] = true; // Mark this neighbor vertex as visited
+                        queue.add(neighbor); // Add this neighbor vertex to the bfs queue
+                        searchTreeMap.put(neighbor, current); // Add thus neighbor and its parent to the search map
+                    }
+                }
+
+                //Chgecking for incoming edges if it's an undirected graph
+                if (digraph == false) {
+                    neighbors = g.in(current);
+                    for (Integer neighbor : neighbors) {
+                        if (visitedVertices[neighbor] == false) { //This neighbor has not been visited
+                            visitedVertices[neighbor] = true; // Mark this neighbor vertex as visited
+                            queue.add(neighbor); // Add this neighbor vertex to the bfs queue
+                            searchTreeMap.put(neighbor, current); // Add thus neighbor and its parent to the search map
+                        }
+                    }
+                }
+            }
+            return searchTreeMap; // Return the bfs search tree
+        }
+
+  /**
+   * Checks if a source (src) vertex can reach a destination (dst)
+   * vertex (i.e., dst is reachable from src) in a graph using a
+   * modified version of the BFS algorithm. Assumes all vertices can
+   * trivially reach themselves (even if no self edge).
+   * @param g The graph to search
+   * @param src The source vertex to search from
+   * @param dst The destination vertex (for a path from src to dst)
+   * @param digraph If false, treat g as undirected
+   * @returns The shortest path from src to dst as a sequence of vertices
+   *          (forming the path) or the empty sequence if dst is not
+   *          reachable from src
+   */
+  public static List<Integer> reachable(Graph g, int src, int dst, boolean digraph) {
+    // @TODO: implement this function
+    // NOTE: You must not call your BFS function to implement reachable
+    // Check if src and dest are valid
+        if (g.hasVertex(src)  == false || g.hasVertex(dst) == false) {
+            return new ArrayList<>(); // Return an empty list if src or dst vertices do not exist
+        }
+
+        List<Integer> path = new ArrayList<>(); // To store the path from src to dst
+        Map<Integer, Integer> parentMap = new HashMap<>(); // To build the path
+        boolean[] visitedVertices = new boolean[g.vertices()]; // Boolean array for visited vertices
+        Queue<Integer> queue = new LinkedList<>(); // Queue for BFS
+
+        visitedVertices[src] = true; // Mark source vertex as visited
+        queue.add(src); // Add the starting vertex to the bfs queue
+        parentMap.put(src, null); // Set the parent of the scource vertex as null, no parent
+
+        while (queue.isEmpty() == false) { //Loop until the queue is empty
+            int current = queue.poll(); // Remove the first vertex from the queue
+
+            // stop if the vertex removed from the queue is the destinatiuon vertex
+            if (current == dst) {
+                break;
+            }
+
+            // Go through all outgoing neighbors
+            Set<Integer> neighbors = g.out(current); //get all out edges for the current vertex
+            for (Integer neighbor : neighbors) {
+                if (!visitedVertices[neighbor]) { // if this neighbor has not been visited
+                    visitedVertices[neighbor] = true; // Mark this neighbor veretx as visited now
+                    queue.add(neighbor); // add this vertex to the queue
+                    parentMap.put(neighbor, current); //add this vertes and parent to the map
+                }
+            }
+
+            
+            if (!digraph) { // If the graph is undirected
+                neighbors = g.in(current); // get all in edges for the current vertex
+                for (Integer neighbor : neighbors) {
+                    if (!visitedVertices[neighbor]) { //if this neighbor has not been visited
+                        visitedVertices[neighbor] = true; // Mark this neighbor veretx as visited now
+                        queue.add(neighbor); //add this vertex to the queue
+                        parentMap.put(neighbor, current); //add this vertes and parent to the map
+                    }
+                }
+            }
+        }
+
+        // build the path from src to dst
+        Integer current = dst;
+        while (current != null) {
+            path.add(0, current); // Add to the front of the list
+            current = parentMap.get(current); // add to the map
+        }
+
+        // Check if the destination was reached
+        if(path.size() > 0 && path.get(0) == src)
+            return path;
+        else    
+            return new ArrayList<>();
+       
+    }
+  
+  /**
+   * Finds all of the connected components in the given graph. Note
+   * that for directed graphs, computes the "weakly" connected components.
+   * @param g The graph to search
+   * @return A mapping from vertices to components where components
+   *         are numbered from 0 to n-1 for n discovered components.
+   */
+  public static Map<Integer,Integer> weakComponents(Graph g) {
+    // @TODO: implement this function.
+    // NOTE: This function CAN reuse your BFS function above.
+
+    Map<Integer, Integer> weakComponentMap = new HashMap<>();
+    boolean[] visitedVertices = new boolean[g.vertices()]; // Boolean array for visited vertices with the size equal to total number of vertices 
+    int counter = 0;
+
+        for (int i = 0; i < g.vertices(); i++) {  // look at each vertex
+            if (visitedVertices[i] == false && g.hasVertex(i) == true) { // if the vertex exists and not visited yet
+                // calling bfs method for vertex taht is not visited
+                Map<Integer, Integer> bfsMap = bfs(g, i, false); //reusing my bfs method
+                if (bfsMap != null) {
+                    for (Integer vertex : bfsMap.keySet()) { //  each vertext in the bfs map
+                        weakComponentMap.put(vertex, counter); //add to the weak component map
+                        visitedVertices[vertex] = true; // Mark this vertex as visited
+                    }
+                    counter++; //increment the counter
+                }
+            }
+        }
+        return weakComponentMap; // Return the map
+    }
+   
+  /**
+   * Finds the longest shortest path in the given graph as a sequence
+   * of vertices. The number of vertices returned minus one is the
+   * diameter of the graph.
+   * @param g The graph to search
+   * @param digraph If false, treat g as undirected
+   * @return The length (i.e., diameter) of the longest shortest path
+   */
+  public static int diameter(Graph g, boolean digraph) {
+    // @TODO: implement this function
+    // NOTE: You must not call your BFS function to implement diameter
+    if (g.vertices() == 0) {
+        return 0; // If no vertices in the graph
+    }
+
+    int maxD = 0; // initialize  diameter to 0
+
+    // go through all vertices of the graph
+    for (int startVertex = 0; startVertex < g.vertices(); startVertex++) {        
+        int[] distances = new int[g.vertices()];// Array to hold distances for the current start vertex
+        boolean[] visitedVertices = new boolean[g.vertices()]; // Boolean array for visited vertices
+
+        // Initialize distances all to -1
+        for (int i = 0; i < distances.length; i++) {
+            distances[i] = -1; // unvisited = -1
+        }
+        distances[startVertex] = 0; // Distance of a vertex from itself = 0
+
+        Queue<Integer> queue = new LinkedList<>(); // Queue for bfs
+        queue.add(startVertex);
+        visitedVertices[startVertex] = true;
+
+        while (queue.isEmpty() == false) {
+            int current = queue.poll();
+            for (Integer neighbor : g.out(current)) { // Get outgoing neighbors
+                if (visitedVertices[neighbor] == false) {
+                    visitedVertices[neighbor] = true; // Make it visited
+                    distances[neighbor] = distances[current] + 1; // increase distance by 1
+                    queue.add(neighbor); // Add neighbor to the queue
+                }
+            }
+            // If undirected, also check incoming edges
+            if (digraph == false) {
+                for (Integer neighbor : g.in(current)) { // Get incoming neighbors
+                    if (visitedVertices[neighbor] == false) {
+                        visitedVertices[neighbor] = true; // make it visited
+                        distances[neighbor] = distances[current] + 1; // increase distance by 1
+                        queue.add(neighbor); // Add neighbor to the queue
+                    }
+                }
+            }
+        }
+        // Find the max of all distances
+        for (int distance : distances) {
+            if (distance > maxD) {
+                maxD = distance;
+            }
+        }
+    }
+    return maxD; // Return the maximum distance, which is the diameter of the graph
+  }  
 }
 
 
